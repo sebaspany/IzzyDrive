@@ -1,0 +1,17 @@
+{
+  "name": "EthansRaceBlast",
+  "short_name": "RaceBlast",
+  "description": "Ethan's Epic Supercar Birthday Race Party – Go Fast, Have Fun!",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
