@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useDeviceTilt } from './hooks/useDeviceTilt';
 import type { CarType, Difficulty, GameScreen } from './game/types';
 import { CAR_DATA, DIFFICULTY_CONFIG } from './game/types';
@@ -312,19 +312,23 @@ function StartScreen({
   onStart: () => void;
   isSupported: boolean;
 }) {
+  const particleStyles = useMemo(() =>
+    Array.from({ length: 20 }).map((_, i) => ({
+      left: `${(i * 5 + (i * 37 % 100)) % 100}%`,
+      animationDelay: `${(i * 1.7) % 5}s`,
+      animationDuration: `${3 + (i * 1.3) % 4}s`,
+      backgroundColor: ['#ff0066', '#00ffcc', '#ffcc00', '#ff6600', '#00ccff'][i % 5],
+    })),
+  []);
+
   return (
     <div className="start-screen">
       <div className="start-bg-particles">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {particleStyles.map((style, i) => (
           <div
             key={i}
             className="bg-particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-              backgroundColor: ['#ff0066', '#00ffcc', '#ffcc00', '#ff6600', '#00ccff'][i % 5],
-            }}
+            style={style}
           />
         ))}
       </div>
