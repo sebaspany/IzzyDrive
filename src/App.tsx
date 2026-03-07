@@ -33,11 +33,18 @@ function App() {
   const animFrameRef = useRef<number>(0);
   const touchSteerRef = useRef(0);
   const touchStartXRef = useRef<number | null>(null);
+  const keySteerRef = useRef(0);
   const lastComboRef = useRef(1);
   const lastBoostedRef = useRef(false);
   const lastLivesRef = useRef(3);
+  const tiltXRef = useRef(0);
 
   const { tiltX, requestPermission, isSupported } = useDeviceTilt();
+
+  // Keep tiltX in a ref so the game loop reads it without re-initializing
+  useEffect(() => {
+    tiltXRef.current = tiltX;
+  }, [tiltX]);
 
   // ============ START SCREEN ============
   const handleStartRace = useCallback(async () => {
@@ -105,16 +112,34 @@ function App() {
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 
+    // Keyboard controls for desktop testing
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keySteerRef.current = -1;
+      if (e.key === 'ArrowRight' || e.key === 'd') keySteerRef.current = 1;
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'ArrowRight' || e.key === 'd') {
+        keySteerRef.current = 0;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
     window.addEventListener('resize', resize);
 
     const loop = () => {
       const state = gameStateRef.current;
 
+      // Combine tilt, touch, and keyboard steering
+      const steerInput = Math.abs(tiltXRef.current) > 0.05
+        ? tiltXRef.current
+        : (Math.abs(touchSteerRef.current) > 0.05 ? touchSteerRef.current : keySteerRef.current);
+
       // Update
       gameStateRef.current = updateGame(
         state,
-        tiltX,
-        touchSteerRef.current,
+        steerInput,
+        0, // touchSteer already merged above
         difficulty,
         w,
         h
@@ -210,9 +235,11 @@ function App() {
       canvas.removeEventListener('touchstart', handleTouchStart);
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('resize', resize);
     };
-  }, [screen, difficulty, selectedCar, tiltX]);
+  }, [screen, difficulty, selectedCar]);
 
   // ============ CELEBRATION SCREEN ============
   useEffect(() => {
